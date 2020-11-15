@@ -45,9 +45,9 @@ assignSelfReport <- function(param,s1) { # s is struc1.long
   s1$Probs <- NA  
   s1$Cost <- NA # need NA for NA cells and 0 in no cost cells
   
-  s1$Probs[s1$NumberFrom==1 & s1$NumberTo==17] <- (1-val["m"]-val["o"])*val["a"]*val["c"]
-  s1$Probs[s1$NumberFrom==1 & s1$NumberTo==18] <- (val["m"]*val["n"]+val["o"])*val["a"]*val["c"]
-  s1$Probs[s1$NumberFrom==1 & s1$NumberTo==2] <- (val["m"]-val["m"]*val["n"])*val["a"]*val["c"]
+  s1$Probs[s1$NumberFrom==1 & s1$NumberTo==17] <- (1-val["m"]-val["o"])#*val["a"]*val["c"]
+  s1$Probs[s1$NumberFrom==1 & s1$NumberTo==18] <- (val["m"]*val["n"]+val["o"])#*val["a"]*val["c"]
+  s1$Probs[s1$NumberFrom==1 & s1$NumberTo==2] <- (val["m"]-val["m"]*val["n"])#*val["a"]*val["c"]
   s1$Probs[s1$NumberFrom==2 & s1$NumberTo==15] <- 1-val["b"]
   s1$Probs[s1$NumberFrom==2 & s1$NumberTo==3] <- val["b"]
   s1$Probs[s1$NumberFrom==3 & s1$NumberTo==14] <- 1-val["p"]
@@ -111,7 +111,9 @@ assignSelfReport <- function(param,s1) { # s is struc1.long
   s1$Probs[s1$NumberFrom==59 & s1$NumberTo==60] <- val["s"]
   s1$Probs[s1$NumberFrom==59 & s1$NumberTo==61] <- 1-val["s"]-val["t"]
   s1$Probs[s1$NumberFrom==59 & s1$NumberTo==62] <- val["t"]
-  s1$Probs[s1$NumberFrom==67 & s1$NumberTo==68] <- val["u"]   
+  s1$Probs[s1$NumberFrom==67 & s1$NumberTo==68] <- val["u"]  
+  
+  s1$Probs <- round(s1$Probs,8)
   
   s1$Cost[s1$NumberFrom==1 & s1$NumberTo==2]<- val["f"]
   s1$Cost[s1$NumberFrom==1 & s1$NumberTo==17] <- 0 
@@ -184,6 +186,8 @@ assignSelfReport <- function(param,s1) { # s is struc1.long
   return(s1)
 }
 
+
+## something wrong here with row sums
 assignPeerLed <- function(param,s2) { # s is struc2.long
   
   val <- param$Value
@@ -192,9 +196,9 @@ assignPeerLed <- function(param,s2) { # s is struc2.long
   s2$Probs <- NA  
   s2$Cost <- NA # need NA for NA cells and 0 in no cost cells
   
-  s2$Probs[s2$NumberFrom==1 & s2$NumberTo==2] <- (val["m"]-val["m"]*val["n"])*val["a"]*val["c"]
-  s2$Probs[s2$NumberFrom==1 & s2$NumberTo==17] <- (1-val["m"]-val["o"])*val["a"]*val["c"]
-  s2$Probs[s2$NumberFrom==1 & s2$NumberTo==18] <- (val["m"]*val["n"]+val["o"])*val["a"]*val["c"]
+  s2$Probs[s2$NumberFrom==1 & s2$NumberTo==2] <- (val["m"]-val["m"]*val["n"])#*val["a"]*val["c"]
+  s2$Probs[s2$NumberFrom==1 & s2$NumberTo==17] <- (1-val["m"]-val["o"])#*val["a"]*val["c"]
+  s2$Probs[s2$NumberFrom==1 & s2$NumberTo==18] <- (val["m"]*val["n"]+val["o"])#*val["a"]*val["c"]
   s2$Probs[s2$NumberFrom==2  & s2$NumberTo==3] <- val["b"]
   s2$Probs[s2$NumberFrom==2  & s2$NumberTo==15] <- 1-val["b"]
   s2$Probs[s2$NumberFrom==3  & s2$NumberTo==4] <- val["p"]
@@ -263,7 +267,9 @@ assignPeerLed <- function(param,s2) { # s is struc2.long
   s2$Probs[s2$NumberFrom==62 & s2$NumberTo==63] <- val["s"]
   s2$Probs[s2$NumberFrom==62 & s2$NumberTo==64] <- 1-val["s"]-val["t"]
   s2$Probs[s2$NumberFrom==62 & s2$NumberTo==65] <- val["t"]
-  s2$Probs[s2$NumberFrom==70 & s2$NumberTo==71] <- val["u"]   
+  s2$Probs[s2$NumberFrom==70 & s2$NumberTo==71] <- val["u"]  
+  
+  s2$Probs <- round(s2$Probs,8)
     
   s2$Cost[s2$NumberFrom==1 & s2$NumberTo==2] <- val["f"]
   s2$Cost[s2$NumberFrom==1 & s2$NumberTo==17] <- 0
@@ -351,22 +357,34 @@ makeMatrix <- function(s) {
     mP[s$NumberFrom[i],s$NumberTo[i]] <- s$Probs[i]
     mC[s$NumberFrom[i],s$NumberTo[i]] <- s$Cost[i]
   }
-  return(list(probs=mP,cost=mC))
+  return(list(prob=mP,vals=mC))
 }
 # 
 
-# # # calculate total costs
-# totalcosts <- function(mP,mC) {
-#   
-# }
-# #   
+# # calculate total costs
+totalcosts <- function(mP,mC) {
+  all <- Cdectree_expected_values(vals=mC,p=mP)
+  mC1 <- mC
+  mC1[!is.na(mC)] <- 1
+  probs <- Cdectree_expected_values(vals=mC1,p=mP) # value of 1 for each.. this should work like a QALY
+  # sum(all)
+  # return(all)
+}
 
-# t1 <- assignSelfReport(param_in,struc1.long)
-#t2 <- assignSelfReport(param_in,struc2.long)
-# test <- makeMatrix(t1)
+
+#
+t1 <- assignSelfReport(param_in,struc1.long)
+test <- makeMatrix(t1)
+is_prob_matrix(test[["prob"]]) # this doesn't work because of recurring values
+selfM <- define_model(transmat=test)
+xx <- rowSums(branch_joint_probs(selfM),na.rm=T)
+xx[c(7,26,40,59)]
+dectree_expected_values(model=selfM) # this one works with model input, the other one works with 
+
+
+#t2 <- assignSelfReport(param_in,struc2.long) ## theres is a problem with struc2!!
 # test2 <- makeMatrix(t2)
+# costlist2 <- Cdectree_expected_values(vals=test2[["cost"]],p=test2[["probs"]])
 
-costlist2 <- Cdectree_expected_values(vals=test2[["cost"]],p=test2[["probs"]])
-sum(costlist2) # this seems fine for now
 
 
