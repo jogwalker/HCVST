@@ -1,7 +1,5 @@
 # read in model structure and define parameters
-
 setwd("~/git/HCVST/")
-
 library(tidyverse)
 library(readxl)
 library(xlsx)
@@ -64,10 +62,10 @@ assignSelfReport <- function(param,s1) { # s is struc1.long
   s1$Probs[s1$NumberFrom==15 & s1$NumberTo==16] <- val["u"]
   s1$Probs[s1$NumberFrom==18 & s1$NumberTo==19] <- 1-val["z"]
   s1$Probs[s1$NumberFrom==18 & s1$NumberTo==20] <- val["z"]    
-  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==21] <- val["b"]*val["v"]*val["w"]
-  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==33] <- val["b"]*(1-val["v"])*val["w"]
-  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==52] <- 1-val["w"]
-  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==50] <- (1-val["b"])*val["w"]
+  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==21] <- val["b"]*val["v"]*val["w"]*val["z1"]
+  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==33] <- val["b"]*(1-val["v"])*val["w"]*val["z1"]
+  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==52] <- (1-val["w"])*val["z3"]
+  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==50] <- (1-val["b"])*val["w"]*val["z2"]
   s1$Probs[s1$NumberFrom==21 & s1$NumberTo==22] <- 1-val["p"]
   s1$Probs[s1$NumberFrom==21 & s1$NumberTo==23] <- val["p"]
   s1$Probs[s1$NumberFrom==23 & s1$NumberTo==24] <- val["d"]
@@ -112,6 +110,7 @@ assignSelfReport <- function(param,s1) { # s is struc1.long
   s1$Probs[s1$NumberFrom==59 & s1$NumberTo==61] <- 1-val["s"]-val["t"]
   s1$Probs[s1$NumberFrom==59 & s1$NumberTo==62] <- val["t"]
   s1$Probs[s1$NumberFrom==67 & s1$NumberTo==68] <- val["u"]  
+  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==19] <- val["b"]*val["w"]*(1-val["z1"]) + (1-val["b"])*val["w"]*(1-val["z2"]) + (1-val["w"])*(1-val["z3"]) 
   
   s1$Probs <- round(s1$Probs,8)
   
@@ -133,11 +132,11 @@ assignSelfReport <- function(param,s1) { # s is struc1.long
   s1$Cost[s1$NumberFrom==7 & s1$NumberTo==10] <- 0 
   s1$Cost[s1$NumberFrom==15 & s1$NumberTo==16] <- 0 
   s1$Cost[s1$NumberFrom==18 & s1$NumberTo==19] <- 0 
-  s1$Cost[s1$NumberFrom==18 & s1$NumberTo==20] <- val["i"] 
-  s1$Cost[s1$NumberFrom==20 & s1$NumberTo==21] <- val["k"] 
-  s1$Cost[s1$NumberFrom==20 & s1$NumberTo==33] <- 0 
-  s1$Cost[s1$NumberFrom==20 & s1$NumberTo==50] <- val["j"] 
-  s1$Cost[s1$NumberFrom==20 & s1$NumberTo==52] <- 0 
+  s1$Cost[s1$NumberFrom==18 & s1$NumberTo==20] <- 0
+  s1$Cost[s1$NumberFrom==20 & s1$NumberTo==21] <- val["k"]+val["i"] 
+  s1$Cost[s1$NumberFrom==20 & s1$NumberTo==33] <- val["i"] 
+  s1$Cost[s1$NumberFrom==20 & s1$NumberTo==50] <- val["j"] +val["i"]
+  s1$Cost[s1$NumberFrom==20 & s1$NumberTo==52] <- val["i"]
   s1$Cost[s1$NumberFrom==21 & s1$NumberTo==22] <- 0 
   s1$Cost[s1$NumberFrom==21 & s1$NumberTo==23] <- val["g"] 
   s1$Cost[s1$NumberFrom==23 & s1$NumberTo==24] <- val["k"] 
@@ -361,30 +360,87 @@ makeMatrix <- function(s) {
 }
 # 
 
-# # calculate total costs
+# # calculate cost at first
 totalcosts <- function(mP,mC) {
   all <- Cdectree_expected_values(vals=mC,p=mP)
-  mC1 <- mC
-  mC1[!is.na(mC)] <- 1
-  probs <- Cdectree_expected_values(vals=mC1,p=mP) # value of 1 for each.. this should work like a QALY
+  return(all[1])
+}
+  # mC1 <- mC
+  # mC1[!is.na(mC)] <- 1
+  # probs <- Cdectree_expected_values(vals=mC1,p=mP) # value of 1 for each.. this should work like a QALY
   # sum(all)
   # return(all)
+
+## how many treated? diagnosed? cured? tested?
+# mat <- georgia_out$trustoraltest$mat
+numbers <- function(mat,str,param) {
+  M <- define_model(transmat=mat)
+  bp <- branch_joint_probs(M)
+  bp1 <- colSums(bp,na.rm=T)
+  
+  cascade <- data.frame(groups = unique(str$SumGroup), p=NA)
+  for(j in 1:nrow(cascade)) {
+    cascade$p[j] <- sum(bp1[str$NumberFrom[str$SumGroup==cascade$groups[j]]],na.rm=T)
+  }
+  cascade$p[cascade$groups=="Start"] <- 1 # set at 1 so get initial number
+  cascade$number <- cascade$p*param$Value[param$Label=="c"]*param$Value[param$Label=="a"]
+  
+  return(cascade)
 }
 
 
-#
-t1 <- assignSelfReport(param_in,struc1.long)
-test <- makeMatrix(t1)
-is_prob_matrix(test[["prob"]]) # this doesn't work because of recurring values
-selfM <- define_model(transmat=test)
-xx <- rowSums(branch_joint_probs(selfM),na.rm=T)
-xx[c(7,26,40,59)]
-dectree_expected_values(model=selfM) # this one works with model input, the other one works with 
-
-
-#t2 <- assignSelfReport(param_in,struc2.long) ## theres is a problem with struc2!!
-# test2 <- makeMatrix(t2)
-# costlist2 <- Cdectree_expected_values(vals=test2[["cost"]],p=test2[["probs"]])
-
+# #
+# t1 <- assignSelfReport(param_in,struc1.long)
+# test <- makeMatrix(t1)
+# is_prob_matrix(test[["prob"]]) 
+# selfM <- define_model(transmat=test)
+# bp <- branch_joint_probs(selfM)
+# ct <- dectree_expected_values(model=selfM) # this one works with model input, the alternative C function works with vals and probs
+# ct2 <- Cdectree_expected_values(vals=test$vals,p=test$prob) # this looks completely different than the above.
+# sum(ct2) # this looks better
+# sum(ct) # i think they are cumulative.
+# 
+# testv <- test
+# testv$vals[!is.na(testv$vals)] <- 1
+# selfMv <- define_model(transmat=testv)
+# 
+# ctv2 <- Cdectree_expected_values(vals=testv$vals,p=testv$prob) 
+# ctv1 <- dectree_expected_values(model=selfMv) # this is the same as ctv1 except 1 has been added to all values from node 3 onwards.
+# 
+# # I need to test a simple model to understand what's going on
+# cost
+# probs
+# mt <- define_model(transmat=list(vals=cost,prob=probs))
+# sum(dectree_expected_values(model=mt))
+# sum(Cdectree_expected_values(vals=as.matrix(cost),p=as.matrix(probs))) # this gives a different answer.. no values for endpoints, which actually makes sense because they are back calculated to decision nodes. 
+# 
+# # so what should the value be for link to care (6)?
+# test$vals[6,7]*test$prob[6,7]*test$vals[7,8]*test$prob[7,8]  + test$vals[6,7]*test$prob[6,7]*test$vals[7,9]*test$prob[7,9] + test$vals[6,7]*test$prob[6,7]*test$vals[7,10]*test$prob[7,10] + test$vals[6,11]*test$prob[6,11]
+# # add back to 5
+# 
+# test$vals[5,6]*test$prob[5,6]*test$vals[6,7]*test$prob[6,7]*test$vals[7,8]*test$prob[7,8]  + test$vals[5,6]*test$prob[5,6]*test$vals[6,7]*test$prob[6,7]*test$vals[7,9]*test$prob[7,9] + test$vals[5,6]*test$prob[5,6]*test$vals[6,7]*test$prob[6,7]*test$vals[7,10]*test$prob[7,10] + test$vals[5,6]*test$prob[5,6]*test$vals[6,11]*test$prob[6,11] + test$vals[5,12]*test$prob[5,12]
+# # this still doesn't make sense
+# 
+# test$prob[5,6]*test$prob[6,7]*test$prob[7,8]  + test$prob[5,6]*test$prob[6,7]*test$prob[7,9] + test$prob[5,6]*test$prob[6,7]*test$prob[7,10] + test$prob[5,6]*test$prob[6,11] + test$prob[5,12]# these always add up to 1.
+# 
+# 
+# effects<-probs[1,2]*cost[1,2]*probs[2,4]*cost[2,4] + probs[1,2]*cost[1,2]*probs[2,5]*cost[2,5] +
+#   probs[1,3]*cost[1,3]*probs[3,6]*cost[3,6] + probs[1,3]*cost[1,3]*probs[3,7]*cost[3,7]
+# # effects<- probs[1,2]*probs[2,4] + probs[1,2]*probs[2,5] + probs[1,3]*probs[3,6] + probs[1,3]*probs[3,7] # sums to 1
+# effects<-cost[1,2] + probs[1,2]*cost[2,4]*probs[2,4] + probs[1,2]*cost[2,5]*probs[2,5] +
+#   probs[1,3]*cost[3,6]*probs[3,6] + probs[1,3]*cost[3,7]*probs[3,7]
+# # so this equals 2.8 
+# 
+# sum(probs*cost,na.rm=T)
+# 
+# #t2 <- assignSelfReport(param_in,struc2.long) ## theres is a problem with struc2!!
+# # test2 <- makeMatrix(t2)
+# # costlist2 <- Cdectree_expected_values(vals=test2[["cost"]],p=test2[["probs"]])
+# 
+# which(struc1$Endpoint==0)[32] #15,48,50,67 are 0 <- this is correct because those are the ones that only go on to retest next year
+# ct2[struc1$Endpoint==0] 
+# ct2[struc1$Endpoint==1]
+# 
+# ct[struc1$Endpoint==1] 
 
 
