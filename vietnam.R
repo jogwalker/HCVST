@@ -1,8 +1,10 @@
-# georgia main results
+# Vietnam
+
+# Vietnam main results
 setwd("~/git/HCVST/")
 source("model_structure.R")
 
-trustoraltest <- param_in %>% dplyr::select(Label,Value=Georgia) 
+trustoraltest <- param_in %>% dplyr::select(Label,Value=Vietnam) 
 TOT.highselftest <- trustoraltest %>% mutate(Value=replace(Value,Label=="n",0.5))
 TOT.highreplace <- trustoraltest %>% mutate(Value=replace(Value,Label=="o",0.2))
 TOT.reporthigh <- trustoraltest %>% mutate(Value=replace(Value,Label %in% (c("z1","z3")),0.95))
@@ -24,31 +26,27 @@ RTB.highselftest <- retestallblood %>% mutate(Value=replace(Value,Label=="n",0.5
 RTB.highreplace <- retestallblood %>% mutate(Value=replace(Value,Label=="o",0.2))
 RTB.reporthigh <- retestallblood %>% mutate(Value=replace(Value,Label %in% (c("z1","z3")),0.95))
 
-georgia_list <- list(trustoraltest,TOT.highselftest,TOT.highreplace,TOT.reporthigh,noselftest,retestalloral,RTO.highselftest,RTO.highreplace,RTO.reporthigh,trustbloodtest,TBT.highselftest,TBT.highreplace,TBT.reporthigh,retestallblood,RTB.highselftest,RTB.highreplace,RTB.reporthigh)
+Vietnam_list <- list(trustoraltest,TOT.highselftest,TOT.highreplace,TOT.reporthigh,noselftest,retestalloral,RTO.highselftest,RTO.highreplace,RTO.reporthigh,trustbloodtest,TBT.highselftest,TBT.highreplace,TBT.reporthigh,retestallblood,RTB.highselftest,RTB.highreplace,RTB.reporthigh)
 
 scenario_names <- c("trustoraltest","TOT.highselftest","TOT.highreplace","TOT.reporthigh","noselftest","retestalloral","RTO.highselftest","RTO.highreplace","RTO.reporthigh","trustbloodtest","TBT.highselftest","TBT.highreplace","TBT.reporthigh","retestallblood","RTB.highselftest","RTB.highreplace","RTB.reporthigh")
- names(georgia_list) <- scenario_names  
+names(Vietnam_list) <- scenario_names  
 
-georgia_out <- georgia_list
-names(georgia_out) <- names(georgia_list)
-georgia_cost <- data.frame(scenario=scenario_names,cost=NA) 
+Vietnam_out <- Vietnam_list
+names(Vietnam_out) <- names(Vietnam_list)
+Vietnam_cost <- data.frame(scenario=scenario_names,cost=NA) 
 
-for(i in 1:length(georgia_list)) {
-  
-  param <- georgia_list[[i]]
+for(i in 1:length(Vietnam_list)) {
+  param <- Vietnam_list[[i]]
   struc <-  assignSelfReport(param,struc1.long,rnd=8)
   mat <- makeMatrix(struc)
   cost <- totalcosts(mC=mat$vals,mP=mat$prob)
   cascade <- numbers(mat,struc1,param) # note this needs to be struc1 not struc1.long
-  georgia_out[[i]] <- list(param=param,struc=struc,mat=mat,cost=cost,cascade=cascade)
-  georgia_cost$cost[i] <- cost[1] 
+  Vietnam_out[[i]] <- list(param=param,struc=struc,mat=mat,cost=cost,cascade=cascade)
+  Vietnam_cost$cost[i] <- cost[1] 
 }
 
-georgia_cost$totalcost <- georgia_cost$cost*param_in$Georgia[param_in$Label=="a"]*param_in$Georgia[param_in$Label=="c"]
-georgia_cost$diff <- georgia_cost$totalcost - georgia_cost$totalcost[georgia_cost$scenario=="noselftest"]
-georgia_cost$perc <- georgia_cost$diff/georgia_cost$totalcost[georgia_cost$scenario=="noselftest"]
-
-
-
+Vietnam_cost$totalcost <- Vietnam_cost$cost*param_in$Vietnam[param_in$Label=="a"]*param_in$Vietnam[param_in$Label=="c"]
+Vietnam_cost$diff <- Vietnam_cost$totalcost - Vietnam_cost$totalcost[Vietnam_cost$scenario=="noselftest"]
+Vietnam_cost$perc <- Vietnam_cost$diff/Vietnam_cost$totalcost[Vietnam_cost$scenario=="noselftest"]
 
 
