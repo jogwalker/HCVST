@@ -44,9 +44,9 @@ assignSelfReport <- function(param,s1,rnd) { # s is struc1.long
   s1$Probs <- NA  
   s1$Cost <- NA # need NA for NA cells and 0 in no cost cells
   
-  s1$Probs[s1$NumberFrom==1 & s1$NumberTo==17] <- (1-val["m"]-val["o"])#*val["a"]*val["c"]
-  s1$Probs[s1$NumberFrom==1 & s1$NumberTo==20] <- (val["m"]*val["n"]+val["o"])#*val["a"]*val["c"]
-  s1$Probs[s1$NumberFrom==1 & s1$NumberTo==2] <- (val["m"]-val["m"]*val["n"])#*val["a"]*val["c"]
+  s1$Probs[s1$NumberFrom==1 & s1$NumberTo==17] <- (1-val["m"]-val["n"])#*val["a"]*val["c"]
+  s1$Probs[s1$NumberFrom==1 & s1$NumberTo==20] <- (val["m"]*val["o"]+val["n"])#*val["a"]*val["c"]
+  s1$Probs[s1$NumberFrom==1 & s1$NumberTo==2] <- (val["m"]-val["m"]*val["o"])#*val["a"]*val["c"]
   s1$Probs[s1$NumberFrom==2 & s1$NumberTo==15] <- 1-val["b"]
   s1$Probs[s1$NumberFrom==2 & s1$NumberTo==3] <- val["b"]
   s1$Probs[s1$NumberFrom==3 & s1$NumberTo==14] <- 1-val["p"]

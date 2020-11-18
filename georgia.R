@@ -1,4 +1,4 @@
-# georgia main results
+# Georgia main results
 setwd("~/git/HCVST/")
 source("model_structure.R")
 
@@ -24,31 +24,39 @@ RTB.highselftest <- retestallblood %>% mutate(Value=replace(Value,Label=="n",0.5
 RTB.highreplace <- retestallblood %>% mutate(Value=replace(Value,Label=="o",0.2))
 RTB.reporthigh <- retestallblood %>% mutate(Value=replace(Value,Label %in% (c("z1","z3")),0.95))
 
-georgia_list <- list(trustoraltest,TOT.highselftest,TOT.highreplace,TOT.reporthigh,noselftest,retestalloral,RTO.highselftest,RTO.highreplace,RTO.reporthigh,trustbloodtest,TBT.highselftest,TBT.highreplace,TBT.reporthigh,retestallblood,RTB.highselftest,RTB.highreplace,RTB.reporthigh)
+Georgia_list <- list(trustoraltest,TOT.highselftest,TOT.highreplace,TOT.reporthigh,noselftest,retestalloral,RTO.highselftest,RTO.highreplace,RTO.reporthigh,trustbloodtest,TBT.highselftest,TBT.highreplace,TBT.reporthigh,retestallblood,RTB.highselftest,RTB.highreplace,RTB.reporthigh)
 
 scenario_names <- c("trustoraltest","TOT.highselftest","TOT.highreplace","TOT.reporthigh","noselftest","retestalloral","RTO.highselftest","RTO.highreplace","RTO.reporthigh","trustbloodtest","TBT.highselftest","TBT.highreplace","TBT.reporthigh","retestallblood","RTB.highselftest","RTB.highreplace","RTB.reporthigh")
- names(georgia_list) <- scenario_names  
+ names(Georgia_list) <- scenario_names  
 
-georgia_out <- georgia_list
-names(georgia_out) <- names(georgia_list)
-georgia_cost <- data.frame(scenario=scenario_names,cost=NA) 
+Georgia_out <- Georgia_list
+names(Georgia_out) <- names(Georgia_list)
+Georgia_cost <- data.frame(scenario=scenario_names,cost=NA,diagnosed=NA,treated=NA,cured=NA) 
 
-for(i in 1:length(georgia_list)) {
+for(i in 1:length(Georgia_list)) {
   
-  param <- georgia_list[[i]]
+  param <- Georgia_list[[i]]
   struc <-  assignSelfReport(param,struc1.long,rnd=8)
   mat <- makeMatrix(struc)
   cost <- totalcosts(mC=mat$vals,mP=mat$prob)
   cascade <- numbers(mat,struc1,param) # note this needs to be struc1 not struc1.long
-  georgia_out[[i]] <- list(param=param,struc=struc,mat=mat,cost=cost,cascade=cascade)
-  georgia_cost$cost[i] <- cost[1] 
+  Georgia_out[[i]] <- list(param=param,struc=struc,mat=mat,cost=cost,cascade=cascade)
+  Georgia_cost$cost[i] <- cost[1] 
+  Georgia_cost$diagnosed[i] <- cascade$number[cascade$groups=="Chronic"]
+  Georgia_cost$treated[i] <- cascade$number[cascade$groups=="Treated"]
+  Georgia_cost$cured[i] <- cascade$number[cascade$groups=="Cured"]
 }
 
-georgia_cost$totalcost <- georgia_cost$cost*param_in$Georgia[param_in$Label=="a"]*param_in$Georgia[param_in$Label=="c"]
-georgia_cost$diff <- georgia_cost$totalcost - georgia_cost$totalcost[georgia_cost$scenario=="noselftest"]
-georgia_cost$perc <- georgia_cost$diff/georgia_cost$totalcost[georgia_cost$scenario=="noselftest"]
+Georgia_cost$totalcost <- Georgia_cost$cost*param_in$Georgia[param_in$Label=="a"]*param_in$Georgia[param_in$Label=="c"]
+Georgia_cost$diff <- Georgia_cost$totalcost - Georgia_cost$totalcost[Georgia_cost$scenario=="noselftest"]
+Georgia_cost$perc <- Georgia_cost$diff/Georgia_cost$totalcost[Georgia_cost$scenario=="noselftest"]
 
+Georgia_cost$diffd <- Georgia_cost$diagnosed - Georgia_cost$diagnosed[Georgia_cost$scenario=="noselftest"]
+Georgia_cost$difft <- Georgia_cost$treated - Georgia_cost$treated[Georgia_cost$scenario=="noselftest"]
+Georgia_cost$diffc <- Georgia_cost$cured - Georgia_cost$cured[Georgia_cost$scenario=="noselftest"]
 
+Georgia_cost$cpd <- Georgia_cost$diff / Georgia_cost$diffd
+Georgia_cost$cpt <- Georgia_cost$diff / Georgia_cost$difft
+Georgia_cost$cpc <- Georgia_cost$diff / Georgia_cost$diffc
 
-
-
+write.xlsx(Georgia_cost,"Results.xlsx",sheetName = "Georgia")

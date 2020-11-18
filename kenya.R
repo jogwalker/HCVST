@@ -24,28 +24,39 @@ RTB.highselftest <- retestallblood %>% mutate(Value=replace(Value,Label=="n",0.5
 RTB.highreplace <- retestallblood %>% mutate(Value=replace(Value,Label=="o",0.2))
 RTB.reporthigh <- retestallblood %>% mutate(Value=replace(Value,Label %in% (c("z1","z3")),0.95))
 
-kenya_list <- list(trustoraltest,TOT.highselftest,TOT.highreplace,TOT.reporthigh,noselftest,retestalloral,RTO.highselftest,RTO.highreplace,RTO.reporthigh,trustbloodtest,TBT.highselftest,TBT.highreplace,TBT.reporthigh,retestallblood,RTB.highselftest,RTB.highreplace,RTB.reporthigh)
+Kenya_list <- list(trustoraltest,TOT.highselftest,TOT.highreplace,TOT.reporthigh,noselftest,retestalloral,RTO.highselftest,RTO.highreplace,RTO.reporthigh,trustbloodtest,TBT.highselftest,TBT.highreplace,TBT.reporthigh,retestallblood,RTB.highselftest,RTB.highreplace,RTB.reporthigh)
 
 scenario_names <- c("trustoraltest","TOT.highselftest","TOT.highreplace","TOT.reporthigh","noselftest","retestalloral","RTO.highselftest","RTO.highreplace","RTO.reporthigh","trustbloodtest","TBT.highselftest","TBT.highreplace","TBT.reporthigh","retestallblood","RTB.highselftest","RTB.highreplace","RTB.reporthigh")
-names(kenya_list) <- scenario_names  
+names(Kenya_list) <- scenario_names  
 
-kenya_out <- kenya_list
-names(kenya_out) <- names(kenya_list)
-kenya_cost <- data.frame(scenario=scenario_names,cost=NA) 
+Kenya_out <- Kenya_list
+names(Kenya_out) <- names(Kenya_list)
+Kenya_cost <- data.frame(scenario=scenario_names,cost=NA) 
 
-for(i in 1:length(kenya_list)) {
+for(i in 1:length(Kenya_list)) {
   
-  param <- kenya_list[[i]]
+  param <- Kenya_list[[i]]
   struc <-  assignSelfReport(param,struc1.long,rnd=8)
   mat <- makeMatrix(struc)
   cost <- totalcosts(mC=mat$vals,mP=mat$prob)
   cascade <- numbers(mat,struc1,param) # note this needs to be struc1 not struc1.long
-  kenya_out[[i]] <- list(param=param,struc=struc,mat=mat,cost=cost,cascade=cascade)
-  kenya_cost$cost[i] <- cost[1] 
+  Kenya_out[[i]] <- list(param=param,struc=struc,mat=mat,cost=cost,cascade=cascade)
+  Kenya_cost$cost[i] <- cost[1] 
+  Kenya_cost$diagnosed[i] <- cascade$number[cascade$groups=="Chronic"]
+  Kenya_cost$treated[i] <- cascade$number[cascade$groups=="Treated"]
+  Kenya_cost$cured[i] <- cascade$number[cascade$groups=="Cured"]
 }
 
-kenya_cost$totalcost <- kenya_cost$cost*param_in$Kenya[param_in$Label=="a"]*param_in$Kenya[param_in$Label=="c"]
-kenya_cost$diff <- kenya_cost$totalcost - kenya_cost$totalcost[kenya_cost$scenario=="noselftest"]
-kenya_cost$perc <- kenya_cost$diff/kenya_cost$totalcost[kenya_cost$scenario=="noselftest"]
+Kenya_cost$totalcost <- Kenya_cost$cost*param_in$Kenya[param_in$Label=="a"]*param_in$Kenya[param_in$Label=="c"]
+Kenya_cost$diff <- Kenya_cost$totalcost - Kenya_cost$totalcost[Kenya_cost$scenario=="noselftest"]
+Kenya_cost$perc <- Kenya_cost$diff/Kenya_cost$totalcost[Kenya_cost$scenario=="noselftest"]
 
+Kenya_cost$diffd <- Kenya_cost$diagnosed - Kenya_cost$diagnosed[Kenya_cost$scenario=="noselftest"]
+Kenya_cost$difft <- Kenya_cost$treated - Kenya_cost$treated[Kenya_cost$scenario=="noselftest"]
+Kenya_cost$diffc <- Kenya_cost$cured - Kenya_cost$cured[Kenya_cost$scenario=="noselftest"]
 
+Kenya_cost$cpd <- Kenya_cost$diff / Kenya_cost$diffd
+Kenya_cost$cpt <- Kenya_cost$diff / Kenya_cost$difft
+Kenya_cost$cpc <- Kenya_cost$diff / Kenya_cost$diffc
+
+write.xlsx(Kenya_cost,"Results.xlsx",sheetName = "Kenya", append=TRUE)

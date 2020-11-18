@@ -36,17 +36,29 @@ names(China_out) <- names(China_list)
 China_cost <- data.frame(scenario=scenario_names,cost=NA) 
 
 for(i in 1:length(China_list)) {
+  
   param <- China_list[[i]]
-  struc <-  assignSelfReport(param,struc1.long,rnd=5)
+  struc <-  assignSelfReport(param,struc1.long,rnd=8)
   mat <- makeMatrix(struc)
   cost <- totalcosts(mC=mat$vals,mP=mat$prob)
   cascade <- numbers(mat,struc1,param) # note this needs to be struc1 not struc1.long
   China_out[[i]] <- list(param=param,struc=struc,mat=mat,cost=cost,cascade=cascade)
   China_cost$cost[i] <- cost[1] 
+  China_cost$diagnosed[i] <- cascade$number[cascade$groups=="Chronic"]
+  China_cost$treated[i] <- cascade$number[cascade$groups=="Treated"]
+  China_cost$cured[i] <- cascade$number[cascade$groups=="Cured"]
 }
 
 China_cost$totalcost <- China_cost$cost*param_in$China[param_in$Label=="a"]*param_in$China[param_in$Label=="c"]
 China_cost$diff <- China_cost$totalcost - China_cost$totalcost[China_cost$scenario=="noselftest"]
 China_cost$perc <- China_cost$diff/China_cost$totalcost[China_cost$scenario=="noselftest"]
 
+China_cost$diffd <- China_cost$diagnosed - China_cost$diagnosed[China_cost$scenario=="noselftest"]
+China_cost$difft <- China_cost$treated - China_cost$treated[China_cost$scenario=="noselftest"]
+China_cost$diffc <- China_cost$cured - China_cost$cured[China_cost$scenario=="noselftest"]
 
+China_cost$cpd <- China_cost$diff / China_cost$diffd
+China_cost$cpt <- China_cost$diff / China_cost$difft
+China_cost$cpc <- China_cost$diff / China_cost$diffc
+
+write.xlsx(China_cost,"Results.xlsx",sheetName = "China", append=TRUE)

@@ -36,6 +36,7 @@ names(Vietnam_out) <- names(Vietnam_list)
 Vietnam_cost <- data.frame(scenario=scenario_names,cost=NA) 
 
 for(i in 1:length(Vietnam_list)) {
+  
   param <- Vietnam_list[[i]]
   struc <-  assignSelfReport(param,struc1.long,rnd=8)
   mat <- makeMatrix(struc)
@@ -43,10 +44,21 @@ for(i in 1:length(Vietnam_list)) {
   cascade <- numbers(mat,struc1,param) # note this needs to be struc1 not struc1.long
   Vietnam_out[[i]] <- list(param=param,struc=struc,mat=mat,cost=cost,cascade=cascade)
   Vietnam_cost$cost[i] <- cost[1] 
+  Vietnam_cost$diagnosed[i] <- cascade$number[cascade$groups=="Chronic"]
+  Vietnam_cost$treated[i] <- cascade$number[cascade$groups=="Treated"]
+  Vietnam_cost$cured[i] <- cascade$number[cascade$groups=="Cured"]
 }
 
 Vietnam_cost$totalcost <- Vietnam_cost$cost*param_in$Vietnam[param_in$Label=="a"]*param_in$Vietnam[param_in$Label=="c"]
 Vietnam_cost$diff <- Vietnam_cost$totalcost - Vietnam_cost$totalcost[Vietnam_cost$scenario=="noselftest"]
 Vietnam_cost$perc <- Vietnam_cost$diff/Vietnam_cost$totalcost[Vietnam_cost$scenario=="noselftest"]
 
+Vietnam_cost$diffd <- Vietnam_cost$diagnosed - Vietnam_cost$diagnosed[Vietnam_cost$scenario=="noselftest"]
+Vietnam_cost$difft <- Vietnam_cost$treated - Vietnam_cost$treated[Vietnam_cost$scenario=="noselftest"]
+Vietnam_cost$diffc <- Vietnam_cost$cured - Vietnam_cost$cured[Vietnam_cost$scenario=="noselftest"]
 
+Vietnam_cost$cpd <- Vietnam_cost$diff / Vietnam_cost$diffd
+Vietnam_cost$cpt <- Vietnam_cost$diff / Vietnam_cost$difft
+Vietnam_cost$cpc <- Vietnam_cost$diff / Vietnam_cost$diffc
+
+write.xlsx(Vietnam_cost,"Results.xlsx",sheetName = "Vietnam", append=TRUE)
