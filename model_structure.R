@@ -77,8 +77,8 @@ assignSelfReport <- function(param,s1,rnd) { # s is struc1.long
   s1$Probs[s1$NumberFrom==26 & s1$NumberTo==27] <- val["s"]
   s1$Probs[s1$NumberFrom==26 & s1$NumberTo==28] <- 1-val["s"]-val["t"]
   s1$Probs[s1$NumberFrom==26 & s1$NumberTo==29] <- val["t"]
-  s1$Probs[s1$NumberFrom==33 & s1$NumberTo==34] <- 1-val["y"]
-  s1$Probs[s1$NumberFrom==33 & s1$NumberTo==35] <- val["y"]
+  s1$Probs[s1$NumberFrom==33 & s1$NumberTo==34] <- 1-val["ytest"]
+  s1$Probs[s1$NumberFrom==33 & s1$NumberTo==35] <- val["ytest"]
   s1$Probs[s1$NumberFrom==35 & s1$NumberTo==36] <- val["x"]
   s1$Probs[s1$NumberFrom==35 & s1$NumberTo==48] <- 1-val["x"]
   s1$Probs[s1$NumberFrom==36 & s1$NumberTo==37] <- val["p"]
@@ -94,8 +94,8 @@ assignSelfReport <- function(param,s1,rnd) { # s is struc1.long
   s1$Probs[s1$NumberFrom==40 & s1$NumberTo==43] <- val["t"]
   s1$Probs[s1$NumberFrom==48 & s1$NumberTo==49] <- val["u"]
   s1$Probs[s1$NumberFrom==50 & s1$NumberTo==51] <- val["u"]
-  s1$Probs[s1$NumberFrom==52 & s1$NumberTo==53] <- 1-val["y"]
-  s1$Probs[s1$NumberFrom==52 & s1$NumberTo==54] <- val["y"]
+  s1$Probs[s1$NumberFrom==52 & s1$NumberTo==53] <- 1-val["ytest"]
+  s1$Probs[s1$NumberFrom==52 & s1$NumberTo==54] <- val["ytest"]
   s1$Probs[s1$NumberFrom==54 & s1$NumberTo==55] <- val["b"]
   s1$Probs[s1$NumberFrom==54 & s1$NumberTo==67] <- 1-val["b"]
   s1$Probs[s1$NumberFrom==55 & s1$NumberTo==56] <- val["p"]
@@ -376,16 +376,22 @@ node_probs <- function(mat) {
   p <- mat$prob
   p[is.na(p)] <- 0
   out <- c(1,rep(0,nrow(p)-1))
-  
+  vect1 <- out
+  # k <- 1
+  # print(out)
   for(k in 1:length(out)) {
-    
-    pow <- matrix.power(p,k)
-    vect <- colSums(pow*out)
-    
-    if (sum(vect)==0) {
-      break
-    }
+    # print(k)
+    # pow <- matrix.power(p,k)
+    pow <- p
+    # print(colSums(pow))
+    vect <- colSums(pow*vect1)
+    # print(vect)
+    # f (sum(vect)==0) {
+    #   next
+    # }
     out <- out + vect
+    # print(vect)
+    vect1 <- vect
   }
   return(out)
 }

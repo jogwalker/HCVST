@@ -9,7 +9,7 @@ TOT.reporthigh <- trustoraltest %>% mutate(Value=replace(Value,Label %in% (c("z1
 
 noselftest <- trustoraltest %>% mutate(Value=replace(Value,Label %in% (c("n","o")),0))
 
-retestalloral <- trustoraltest %>% mutate(Value=replace(Value,Label=="v",0))
+retestalloral <- trustoraltest %>% mutate(Value=replace(Value,Label=="v",0))  
 RTO.highselftest <- retestalloral %>% mutate(Value=replace(Value,Label=="n",0.5))
 RTO.highreplace <- retestalloral %>% mutate(Value=replace(Value,Label=="o",0.2))
 RTO.reporthigh <- retestalloral %>% mutate(Value=replace(Value,Label %in% (c("z1","z3")),0.95))
