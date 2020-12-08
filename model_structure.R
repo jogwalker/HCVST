@@ -127,8 +127,8 @@ assignSelfReport <- function(param,s1,rnd) { # s is struc1.long
   s1$Cost[s1$NumberFrom==5 & s1$NumberTo==12] <- 0 
   s1$Cost[s1$NumberFrom==6 & s1$NumberTo==7] <- val["h"] 
   s1$Cost[s1$NumberFrom==6 & s1$NumberTo==11] <- 0 
-  s1$Cost[s1$NumberFrom==7 & s1$NumberTo==8] <- val["g"] 
-  s1$Cost[s1$NumberFrom==7 & s1$NumberTo==9] <- val["g"] 
+  s1$Cost[s1$NumberFrom==7 & s1$NumberTo==8] <- val["g.svr"] 
+  s1$Cost[s1$NumberFrom==7 & s1$NumberTo==9] <- val["g.svr"] 
   s1$Cost[s1$NumberFrom==7 & s1$NumberTo==10] <- 0 
   s1$Cost[s1$NumberFrom==15 & s1$NumberTo==16] <- 0 
   s1$Cost[s1$NumberFrom==20 & s1$NumberTo==19] <- 0 
@@ -144,8 +144,8 @@ assignSelfReport <- function(param,s1,rnd) { # s is struc1.long
   s1$Cost[s1$NumberFrom==24 & s1$NumberTo==31] <- 0 
   s1$Cost[s1$NumberFrom==25 & s1$NumberTo==26] <- val["h"] 
   s1$Cost[s1$NumberFrom==25 & s1$NumberTo==30] <- 0 
-  s1$Cost[s1$NumberFrom==26 & s1$NumberTo==27] <- val["g"] 
-  s1$Cost[s1$NumberFrom==26 & s1$NumberTo==28] <- val["g"] 
+  s1$Cost[s1$NumberFrom==26 & s1$NumberTo==27] <- val["g.svr"] 
+  s1$Cost[s1$NumberFrom==26 & s1$NumberTo==28] <- val["g.svr"] 
   s1$Cost[s1$NumberFrom==26 & s1$NumberTo==29] <- 0 
   s1$Cost[s1$NumberFrom==33 & s1$NumberTo==34] <- 0 
   s1$Cost[s1$NumberFrom==33 & s1$NumberTo==35] <- val["f"] 
@@ -159,8 +159,8 @@ assignSelfReport <- function(param,s1,rnd) { # s is struc1.long
   s1$Cost[s1$NumberFrom==38 & s1$NumberTo==45] <- 0 
   s1$Cost[s1$NumberFrom==39 & s1$NumberTo==40] <- val["h"] 
   s1$Cost[s1$NumberFrom==39 & s1$NumberTo==44] <- 0 
-  s1$Cost[s1$NumberFrom==40 & s1$NumberTo==41] <- val["g"] 
-  s1$Cost[s1$NumberFrom==40 & s1$NumberTo==42] <- val["g"] 
+  s1$Cost[s1$NumberFrom==40 & s1$NumberTo==41] <- val["g.svr"] 
+  s1$Cost[s1$NumberFrom==40 & s1$NumberTo==42] <- val["g.svr"] 
   s1$Cost[s1$NumberFrom==40 & s1$NumberTo==43] <- 0 
   s1$Cost[s1$NumberFrom==48 & s1$NumberTo==49] <- 0 
   s1$Cost[s1$NumberFrom==50 & s1$NumberTo==51] <- 0 
@@ -176,8 +176,8 @@ assignSelfReport <- function(param,s1,rnd) { # s is struc1.long
   s1$Cost[s1$NumberFrom==57 & s1$NumberTo==64] <- 0 
   s1$Cost[s1$NumberFrom==58 & s1$NumberTo==59] <- val["h"] 
   s1$Cost[s1$NumberFrom==58 & s1$NumberTo==63] <- 0 
-  s1$Cost[s1$NumberFrom==59 & s1$NumberTo==60] <- val["g"] 
-  s1$Cost[s1$NumberFrom==59 & s1$NumberTo==61] <- val["g"] 
+  s1$Cost[s1$NumberFrom==59 & s1$NumberTo==60] <- val["g.svr"] 
+  s1$Cost[s1$NumberFrom==59 & s1$NumberTo==61] <- val["g.svr"] 
   s1$Cost[s1$NumberFrom==59 & s1$NumberTo==62] <- 0 
   s1$Cost[s1$NumberFrom==67 & s1$NumberTo==68] <- 0 
 
