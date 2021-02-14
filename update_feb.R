@@ -127,15 +127,89 @@ results.df <- bind_rows(results_sum)
 ### 
 
 numbers <- results.df %>% select(setting,scenario,start_pop:cured) %>% pivot_longer(names_to="outcome",values_to="number",start_pop:cured)
-costs <- results.df %>% select(setting,scenario,cost,totalcost,cost_xT,totalcost_xT) %>% pivot_longer(names_to="outcome",values_to="number",cost:totalcost_xT)
+costs <- results.df %>% select(setting,scenario,cost,totalcost,cost_xT,totalcost_xT) %>% pivot_longer(names_to="outcome",values_to="cost",cost:totalcost_xT)
+results.cf <- results.df %>% filter(scenario=="NoST") %>% select(setting,scenario,all.tested,diagnosed,cured,totalcost,totalcost_xT)
+# cost per diagnosis & cure without HCVST
+results.cf$CPD <- results.cf$totalcost_xT / results.cf$diagnosed
+results.cf$CPC <- results.cf$totalcost / results.cf$cured
 
-numbers %>% filter(outcome %in% c("all.tested")) %>% ggplot(aes(x=scenario,y=number)) + geom_bar(position="dodge",stat="identity") + facet_wrap(~setting,scales="free") + theme_bw()
+results.CE <- results.df %>% select(setting,scenario,totalcost,totalcost_xT,all.tested,diagnosed,cured)
+results.CE <- left_join(results.CE,results.cf,by="setting")
+results.CEd <- results.CE %>% select(setting,scenario.x)
+results.CEd$totalcost.d <- with(results.CE,totalcost.x - totalcost.y)
+results.CEd$totalcost_xT.d <- with(results.CE,totalcost_xT.x - totalcost_xT.y)
+results.CEd$all.tested.d <- with(results.CE,all.tested.x - all.tested.y)
+results.CEd$diagnosed.d <- with(results.CE,diagnosed.x - diagnosed.y)
+results.CEd$cured.d <- with(results.CE,cured.x - cured.y)
+results.CEd$costperdiagnosis <- with(results.CEd,totalcost_xT.d/diagnosed.d)
+results.CEd$costpercure <- with(results.CEd,totalcost.d/cured.d)
 
-numbers %>% filter(outcome %in% c("diagnosed")) %>% ggplot(aes(x=scenario,y=number)) + geom_bar(position="dodge",stat="identity") + facet_wrap(~setting,scales="free") + theme_bw()
+results.CEp <- results.CEd %>% select(setting,scenario.x)
+results.CEp$all.tested.p <- results.CEd$all.tested.d / results.CE$all.tested.y *100
+results.CEp$diagnosed.p <- results.CEd$diagnosed.d / results.CE$diagnosed.y *100
+results.CEp$cured.p <- results.CEd$cured.d / results.CE$cured.y *100
 
-numbers %>% filter(outcome %in% c("cured")) %>% ggplot(aes(x=scenario,y=number)) + geom_bar(position="dodge",stat="identity") + facet_wrap(~setting,scales="free") + theme_bw()
+#### cascade of care
+numbers$outcomef <- as.factor(numbers$outcome)
+numbers$outcomef <- with(numbers, reorder(outcome, number, mean))
+numbers$outcomef <- with(numbers,factor(outcomef, levels = rev(levels(outcomef))))
+numbers$scenariof <- as.factor(numbers$scenario)
+numbers$scenariof <- with(numbers, reorder(scenario, number, mean))
+f3 <- numbers %>% filter(outcomef %in% c("all.tested","Ab.pos","diagnosed","treated","cured") & scenariof %in% c("NoST","BaseCase")) %>% ggplot(aes(x=outcomef,y=number,fill=scenariof)) + geom_bar(position="dodge",stat="identity") + facet_wrap(~setting,scales="free") + theme_classic() + theme(legend.title = element_blank(),legend.position="bottom") + xlab("Cascade of care") + ylab("Number of people")
 
-numbers %>% filter(outcome %in% c("diagnosed")) %>% ggplot(aes(x=scenario,y=number)) + geom_bar(position="dodge",stat="identity") + facet_wrap(~setting,scales="free") + theme_bw()
+pdf("fig3.pdf",width=7,height=7)
+f3
+dev.off()
 
-numbers %>% filter(outcome %in% c("diagnosed","cured")) %>% ggplot(aes(x=scenario,y=number,fill=outcome)) + geom_bar(position="dodge",stat="identity") + facet_wrap(~setting,scales="free") + theme_bw()
+#### sensitivity analysis on numbers diagnosed
+numbers$group <- "Sensitivity analysis"
+numbers$group[numbers$scenario=="BaseCase"] <- "Base Case"
+numbers$group[numbers$scenario=="NoST"] <- "No HCVST"
+numbers %>% filter(outcomef %in% c("diagnosed","treated")) %>% ggplot(aes(x=scenariof,y=number,fill=group)) + geom_bar(position="dodge",stat="identity") + facet_grid(setting~outcomef,scales="free") + theme_classic() + theme(legend.title = element_blank(),legend.position="bottom") + xlab("Modelled Scenario") + ylab("Number of people diagnosed") 
+f4 <- numbers %>% filter(outcomef %in% c("diagnosed")) %>% ggplot(aes(x=scenariof,y=number,fill=group)) + geom_bar(position="dodge",stat="identity") + facet_wrap(~setting,scales="free") + theme_classic() + theme(legend.title = element_blank(),legend.position="bottom") + xlab("Modelled Scenario") + ylab("Number of people diagnosed") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
+pdf("fig4.pdf",width=7,height=7)
+f4
+dev.off()
+
+#### sensitivity analysis on total cost
+costs$group <- "Sensitivity analysis"
+costs$group[costs$scenario=="BaseCase"] <- "Base Case"
+costs$group[costs$scenario=="NoST"] <- "No HCVST"
+costs$scenariof <- as.factor(costs$scenario)
+costs$scenariof <- with(costs, reorder(scenario, cost, mean))
+f5a <- costs %>% filter(outcome %in% c("totalcost_xT")) %>% ggplot(aes(x=scenariof,y=cost/1000,fill=group)) + geom_bar(position="dodge",stat="identity") + facet_wrap(~setting,scales="free") + theme_classic() + theme(legend.title = element_blank(),legend.position="bottom") + xlab("Modelled Scenario") + ylab("Total cost (Thousands of dollars)") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+# including treatment costs
+f5b <- costs %>% filter(outcome %in% c("totalcost")) %>% ggplot(aes(x=scenariof,y=cost/1000,fill=group)) + geom_bar(position="dodge",stat="identity") + facet_wrap(~setting,scales="free") + theme_classic() + theme(legend.title = element_blank(),legend.position="bottom") + xlab("Modelled Scenario") + ylab("Total cost (Thousands of dollars)") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+pdf("fig5.pdf",width=7,height=7)
+f5a
+dev.off()
+
+#### Tornado plots
+
+icer <- results.CEd %>% select(setting,scenario.x,costperdiagnosis,costpercure)
+bc <- icer %>% filter(scenario.x=="BaseCase") 
+icer <- left_join(icer,bc,by="setting")
+icer$diffDiagnosis <- icer$costperdiagnosis.x - icer$costperdiagnosis.y
+icer$diffCure <- icer$costpercure.x - icer$costpercure.y
+icerD <- icer %>% arrange(setting, desc(abs(diffDiagnosis)))
+icerC <- icer %>% arrange(setting, desc(abs(diffCure))) 
+
+
+f6a <- icerD %>% filter(!scenario.x.x %in% c("BaseCase","NoST")) %>% ggplot() + geom_segment(aes(x=scenario.x.x,xend=scenario.x.x,yend=costperdiagnosis.y,y=costperdiagnosis.x,size=2))  + coord_flip() + facet_wrap(~setting,scales="free") + theme_classic()  + geom_hline(data=bc,aes(yintercept=costperdiagnosis)) + theme(legend.position="none")   + xlab("Scenario") +ylab("Incremental cost per diagnosis (USD)") # + geom_hline(yintercept=0,linetype="dotted")
+
+f6b <- icerC %>% filter(!scenario.x.x %in% c("BaseCase","NoST")) %>% ggplot() + geom_segment(aes(x=scenario.x.x,xend=scenario.x.x,y=costpercure.y,yend=costpercure.x,size=2))  + coord_flip() + facet_wrap(~setting,scales="free") + theme_classic()  + geom_hline(data=bc,aes(yintercept=costpercure)) + theme(legend.position="none")   + xlab("Scenario") +ylab("Incremental cost per cure (USD)") # + geom_hline(yintercept=0,linetype="dotted")
+
+pdf("fig6.pdf",width=7,height=7)
+f6a
+dev.off()
+
+pdf("fig7.pdf",width=7,height=7)
+f6b
+dev.off()
+
+
+### TO DO
+# assuming RDT as standard of care test needs a different base case
+# check results for Link65 as this should only affect Vietnam and Kenya
