@@ -49,12 +49,12 @@ assignSelfReport <- function(param,s1,rnd) { # s is struc1.long
   s1$Probs[s1$NumberFrom==1 & s1$NumberTo==17] <- (1-val["m"]-val["n"])#*val["a"]*val["c"]
   s1$Probs[s1$NumberFrom==1 & s1$NumberTo==20] <- (val["m"]*val["o"]+val["n"])#*val["a"]*val["c"]
   s1$Probs[s1$NumberFrom==1 & s1$NumberTo==2] <- (val["m"]-val["m"]*val["o"])#*val["a"]*val["c"]
-  s1$Probs[s1$NumberFrom==2 & s1$NumberTo==15] <- 1-val["b"]*(val["sens2"] + (1-val["spec2"]))
-  s1$Probs[s1$NumberFrom==2 & s1$NumberTo==3] <- val["b"]*(val["sens2"] + (1-val["spec2"]))
+  s1$Probs[s1$NumberFrom==2 & s1$NumberTo==15] <- 1- (val["b"]*(val["sens2"]) + (1-val["b"])*(1-val["spec2"]))
+  s1$Probs[s1$NumberFrom==2 & s1$NumberTo==3] <- val["b"]*(val["sens2"]) + (1-val["b"])*(1-val["spec2"])
   s1$Probs[s1$NumberFrom==3 & s1$NumberTo==14] <- 1-val["p"]
   s1$Probs[s1$NumberFrom==3 & s1$NumberTo==4] <- val["p"]
-  s1$Probs[s1$NumberFrom==4 & s1$NumberTo==13] <- 1-val["d"]*val["sens2"]/(val["sens2"] + (1-val["spec2"]))
-  s1$Probs[s1$NumberFrom==4 & s1$NumberTo==5] <- val["d"]*val["sens2"]/(val["sens2"] + (1-val["spec2"]))
+  s1$Probs[s1$NumberFrom==4 & s1$NumberTo==13] <- 1- (val["d"]*val["b"]*val["sens2"]/ (val["b"]*(val["sens2"]) + (1-val["b"])*(1-val["spec2"])))
+  s1$Probs[s1$NumberFrom==4 & s1$NumberTo==5] <- val["d"]*val["b"]*val["sens2"]/ (val["b"]*(val["sens2"]) + (1-val["b"])*(1-val["spec2"]))
   s1$Probs[s1$NumberFrom==5 & s1$NumberTo==12] <- 1-val["q"]
   s1$Probs[s1$NumberFrom==5 & s1$NumberTo==6] <- val["q"]
   s1$Probs[s1$NumberFrom==6 & s1$NumberTo==11] <- 1-val["r"]
@@ -63,15 +63,18 @@ assignSelfReport <- function(param,s1,rnd) { # s is struc1.long
   s1$Probs[s1$NumberFrom==7 & s1$NumberTo==8] <- val["s"]
   s1$Probs[s1$NumberFrom==7 & s1$NumberTo==9] <- 1-val["s"]-val["t"]
   s1$Probs[s1$NumberFrom==15 & s1$NumberTo==16] <- val["u"]
-  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==19] <- 1 - val["v"]*val["w"]*val["z1"]*val["b"]*(val["sens"]*val["x"] + (1-val["spec"]*val["x"])) - (1 - val["v"])*val["w"]*val["z1"]*val["b"]*(val["sens"]*val["x"] + (1-val["spec"]*val["x"])) - (1-val["w"])*val["z3"] - val["w"]*val["z2"]*(1-val["b"]*(val["sens"]*val["x"] + (1-val["spec"]*val["x"])))
-  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==21] <- val["v"]*val["w"]*val["z1"]*val["b"]*(val["sens"]*val["x"] + (1-val["spec"]*val["x"]))
-  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==33] <- (1 - val["v"])*val["w"]*val["z1"]*val["b"]*(val["sens"]*val["x"] + (1-val["spec"]*val["x"]))
+  
+  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==19] <- 1 - (val["v"]*val["w"]*val["z1"]*(val["b"]*val["sens"]*val["x"] + (1-val["b"])*(1-val["spec"]*val["x"]))) - ((1 - val["v"])*val["w"]*val["z1"]*(val["b"]*val["sens"]*val["x"] + (1-val["b"])*(1-val["spec"]*val["x"]))) - ((1-val["w"])*val["z3"]) - (val["w"]*val["z2"]*(1-(val["b"]*val["sens"]*val["x"] + (1-val["b"])*(1-val["spec"]*val["x"]))))
+  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==21] <- val["v"]*val["w"]*val["z1"]*(val["b"]*val["sens"]*val["x"] + (1-val["b"])*(1-val["spec"]*val["x"]))
+  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==33] <- (1 - val["v"])*val["w"]*val["z1"]*(val["b"]*val["sens"]*val["x"] + (1-val["b"])*(1-val["spec"]*val["x"]))
   s1$Probs[s1$NumberFrom==20 & s1$NumberTo==52] <- (1-val["w"])*val["z3"]
-  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==50] <- val["w"]*val["z2"]*(1-val["b"]*(val["sens"]*val["x"] + (1-val["spec"]*val["x"])))
+  s1$Probs[s1$NumberFrom==20 & s1$NumberTo==50] <- val["w"]*val["z2"]*(1-(val["b"]*val["sens"]*val["x"] + (1-val["b"])*(1-val["spec"]*val["x"])))
+
   s1$Probs[s1$NumberFrom==21 & s1$NumberTo==22] <- 1-val["ytest"]
   s1$Probs[s1$NumberFrom==21 & s1$NumberTo==23] <- val["ytest"]
-  s1$Probs[s1$NumberFrom==23 & s1$NumberTo==24] <- val["d"]*val["sens"]*val["x"]/(val["sens"]*val["x"] + (1-val["spec"]*val["x"]))
-  s1$Probs[s1$NumberFrom==23 & s1$NumberTo==32] <- 1-val["d"]*val["sens"]*val["x"]/(val["sens"]*val["x"] + (1-val["spec"]*val["x"]))
+  s1$Probs[s1$NumberFrom==23 & s1$NumberTo==24] <- val["d"]*(val["b"]*val["sens"]*val["x"])/(val["b"]*val["sens"]*val["x"] + (1-val["b"])*(1-val["spec"]*val["x"]))
+  s1$Probs[s1$NumberFrom==23 & s1$NumberTo==32] <- 1- (val["d"]*(val["b"]*val["sens"]*val["x"])/(val["b"]*val["sens"]*val["x"] + (1-val["b"])*(1-val["spec"]*val["x"])))
+
   s1$Probs[s1$NumberFrom==24 & s1$NumberTo==25] <- val["q"]
   s1$Probs[s1$NumberFrom==24 & s1$NumberTo==31] <- 1-val["q"]
   s1$Probs[s1$NumberFrom==25 & s1$NumberTo==26] <- val["r"]
@@ -81,12 +84,15 @@ assignSelfReport <- function(param,s1,rnd) { # s is struc1.long
   s1$Probs[s1$NumberFrom==26 & s1$NumberTo==29] <- val["t"]
   s1$Probs[s1$NumberFrom==33 & s1$NumberTo==34] <- 1-val["ytest"]
   s1$Probs[s1$NumberFrom==33 & s1$NumberTo==35] <- val["ytest"]
-  s1$Probs[s1$NumberFrom==35 & s1$NumberTo==36] <- (val["sens"]*val["sens2"]*val["x"] + (1-val["spec"]*val["x"])*(1-val["spec2"])) / (val["sens"]*val["x"] + (1-val["spec"]*val["x"]))
-  s1$Probs[s1$NumberFrom==35 & s1$NumberTo==48] <- 1- (val["sens"]*val["sens2"]*val["x"] + (1-val["spec"]*val["x"])*(1-val["spec2"])) / (val["sens"]*val["x"] + (1-val["spec"]*val["x"]))
+  
+  s1$Probs[s1$NumberFrom==35 & s1$NumberTo==36] <- ((val["b"]*val["sens"]*val["sens2"]*val["x"]) + (1-val["b"])*(1-val["spec"]*val["x"])*(1-val["spec2"])) / (val["b"]*val["sens"]*val["x"] + (1-val["b"])*(1-val["spec"]*val["x"]))
+  s1$Probs[s1$NumberFrom==35 & s1$NumberTo==48] <- 1- ((val["b"]*val["sens"]*val["sens2"]*val["x"]) + (1-val["b"])*(1-val["spec"]*val["x"])*(1-val["spec2"])) / (val["b"]*val["sens"]*val["x"] + (1-val["b"])*(1-val["spec"]*val["x"]))
+  
   s1$Probs[s1$NumberFrom==36 & s1$NumberTo==37] <- val["p"]
   s1$Probs[s1$NumberFrom==36 & s1$NumberTo==47] <- 1-val["p"]
-  s1$Probs[s1$NumberFrom==37 & s1$NumberTo==38] <- val["d"]*val["sens2"]/(val["sens2"] + (1-val["spec2"]))
-  s1$Probs[s1$NumberFrom==37 & s1$NumberTo==46] <- 1-val["d"]*val["sens2"]/(val["sens2"] + (1-val["spec2"]))
+  s1$Probs[s1$NumberFrom==37 & s1$NumberTo==38] <- val["d"]*val["b"]*val["sens"]*val["x"]*val["sens2"] / (val["b"]*val["sens"]*val["x"]*val["sens2"] + (1-val["b"])*(1-val["spec"]*val["x"])*(1-val["spec2"]))
+  s1$Probs[s1$NumberFrom==37 & s1$NumberTo==46] <- 1- (val["d"]*val["b"]*val["sens"]*val["x"]*val["sens2"] / (val["b"]*val["sens"]*val["x"]*val["sens2"] + (1-val["b"])*(1-val["spec"]*val["x"])*(1-val["spec2"])))
+  
   s1$Probs[s1$NumberFrom==38 & s1$NumberTo==39] <- val["q"]
   s1$Probs[s1$NumberFrom==38 & s1$NumberTo==45] <- 1-val["q"]
   s1$Probs[s1$NumberFrom==39 & s1$NumberTo==40] <- val["r"]
@@ -98,12 +104,14 @@ assignSelfReport <- function(param,s1,rnd) { # s is struc1.long
   s1$Probs[s1$NumberFrom==50 & s1$NumberTo==51] <- val["u"]
   s1$Probs[s1$NumberFrom==52 & s1$NumberTo==53] <- 1-val["ytest"]
   s1$Probs[s1$NumberFrom==52 & s1$NumberTo==54] <- val["ytest"]
-  s1$Probs[s1$NumberFrom==54 & s1$NumberTo==55] <- val["b"]*(val["sens2"] + (1-val["spec2"]))
-  s1$Probs[s1$NumberFrom==54 & s1$NumberTo==67] <- 1-val["b"]*(val["sens2"] + (1-val["spec2"]))
+  s1$Probs[s1$NumberFrom==54 & s1$NumberTo==55] <- val["b"]*val["sens2"] + (1-val["b"])*(1-val["spec2"])
+  s1$Probs[s1$NumberFrom==54 & s1$NumberTo==67] <- 1- (val["b"]*val["sens2"] + (1-val["b"])*(1-val["spec2"]))
+  
   s1$Probs[s1$NumberFrom==55 & s1$NumberTo==56] <- val["p"]
   s1$Probs[s1$NumberFrom==55 & s1$NumberTo==66] <- 1-val["p"]
-  s1$Probs[s1$NumberFrom==56 & s1$NumberTo==57] <- val["d"]*val["sens2"]/(val["sens2"] + (1-val["spec2"]))
-  s1$Probs[s1$NumberFrom==56 & s1$NumberTo==65] <- 1-val["d"]*val["sens2"]/(val["sens2"] + (1-val["spec2"]))
+  s1$Probs[s1$NumberFrom==56 & s1$NumberTo==57] <- val["d"]*val["b"]*val["sens2"]/ (val["b"]*val["sens2"] + (1-val["b"])*(1-val["spec2"]))
+  s1$Probs[s1$NumberFrom==56 & s1$NumberTo==65] <- 1- (val["d"]*val["b"]*val["sens2"]/ (val["b"]*val["sens2"] + (1-val["b"])*(1-val["spec2"])))
+  
   s1$Probs[s1$NumberFrom==57 & s1$NumberTo==58] <- val["q"]
   s1$Probs[s1$NumberFrom==57 & s1$NumberTo==64] <- 1-val["q"]
   s1$Probs[s1$NumberFrom==58 & s1$NumberTo==59] <- val["r"]
