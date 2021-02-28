@@ -8,59 +8,112 @@ settings <- c("Kenya","Georgia","Vietnam","China")
 param_list <- list()
 param_list_xT <- list()
 
+scen_names <- c(NoST="No ST",NoST.EIA="No ST EIA",BaseCase="Base Case ST",dNAT="Direct to NAT",EIA="EIA standard of care",PMC="Blood-based HCVST",PMChigh="High cost blood-based HCVST",OralHigh="High cost oral-fluid HCVST",LowAcc="Low HCVST performance",HighIRA="High inter-reader agreement",HighLink="High linkage",LowLink="Low linkage",HighUp="High HCVST uptake",LowUp="Low HCVST uptake",HighSub="High substitution",LowSub="Low substitution",HighFail="Low self-test success",LowFail="High self-test success")
+
 for(i in 1:length(settings)) {
-  paramS <- param_sub %>% dplyr::select(Label, ReadIn=settings[i]) %>% mutate(NoST=ReadIn,BaseCase=ReadIn,dNAT=ReadIn,RDT=ReadIn,dNAT.RDT=ReadIn,PMC=ReadIn,LowAcc=ReadIn,HighUptake=ReadIn,LowSuccess=ReadIn,HighRepl=ReadIn,Link65=ReadIn)
+  paramS <- param_sub %>% dplyr::select(Label, ReadIn=settings[i]) %>% mutate(NoST=ReadIn,NoST.EIA=ReadIn,BaseCase=ReadIn,dNAT=ReadIn,EIA=ReadIn, PMC=ReadIn,PMChigh=ReadIn,OralHigh=ReadIn,LowAcc=ReadIn,HighIRA=ReadIn,HighLink=ReadIn,LowLink=ReadIn,HighUp=ReadIn,LowUp=ReadIn,HighSub=ReadIn,LowSub=ReadIn,HighFail=ReadIn,LowFail=ReadIn)
+                                                                              
   # set up alternative scenarios
   
-# Baseline no ST (NoST)
+  #No ST: Baseline no ST 
   paramS$NoST[paramS$Label=="n"] <- 0
   paramS$NoST[paramS$Label=="o"] <- 0
+  paramS$NoST[paramS$Label=="f"] <- paramS$RDT[paramS$Label=="f1"] #RDT standard
   
-# Repeat serologic testing with ST by Oraquick ST (BaseCase)
+  #No ST EIA
+  paramS$NoST.EIA[paramS$Label=="n"] <- 0
+  paramS$NoST.EIA[paramS$Label=="o"] <- 0
+  paramS$NoST.EIA[paramS$Label=="sens2"] <- 1
+  paramS$NoST.EIA[paramS$Label=="spec2"] <- 1
+  
+  # Base Case: Repeat serologic testing by RDT with oral ST  
   paramS$BaseCase[paramS$Label=="v"] <- 0
+  paramS$BaseCase[paramS$Label=="f"] <- paramS$BaseCase[paramS$Label=="f1"] #RDT standard  
   
-#   * Direct to NAT testing following a reactive self-test; (dNAT)
+  # Direct to NAT: Patients are tested by NAT testing following a reactive self-test; 
   paramS$dNAT[paramS$Label=="v"] <- 1
-
-#   *  Standard of care antibody testing (and repeat serologic testing) is by RDT (RDT)
-  paramS$RDT[paramS$Label=="v"] <- 0
-  paramS$RDT[paramS$Label=="f"] <- paramS$RDT[paramS$Label=="f1"]
-  paramS$RDT[paramS$Label=="sens2"] <- 0.98
-  paramS$RDT[paramS$Label=="spec2"] <- 1
+  paramS$dNAT[paramS$Label=="f"] <- paramS$dNAT[paramS$Label=="f1"] #RDT standard  
   
-#   *  Direct to NAT testing in combination with RDT as standard of care antibody test; (dNAT.RDT)
-  paramS$dNAT.RDT[paramS$Label=="v"] <- 1
-  paramS$dNAT.RDT[paramS$Label=="f"] <- paramS$dNAT.RDT[paramS$Label=="f1"]
-  paramS$dNAT.RDT[paramS$Label=="sens2"] <- 0.98
-  paramS$dNAT.RDT[paramS$Label=="spec2"] <- 1
-
-#   *  Using a finger-prick blood-based test instead, based on PMC (PMC)
+  # EIA standard of care: 
+  paramS$EIA[paramS$Label=="v"] <- 0
+  paramS$EIA[paramS$Label=="sens2"] <- 1
+  paramS$EIA[paramS$Label=="spec2"] <- 1
+  
+#   Blood-based HCVST: 
   paramS$PMC[paramS$Label=="v"] <- 0
+  paramS$PMC[paramS$Label=="f"] <- paramS$PMC[paramS$Label=="f1"] #RDT standard  
   paramS$PMC[paramS$Label=="sens"] <- 0.96
   paramS$PMC[paramS$Label=="spec"] <- 0.99
-  paramS$PMC[paramS$Label=="e"] <- 1.5
+  paramS$PMC[paramS$Label=="e"] <- 2.25
   
-# *  Reduced HCVST performance to 80% sensitivity and 80% specificity; (LowAcc)
+# High cost blood-based HCVST cost: 
+  
+  paramS$PMChigh[paramS$Label=="v"] <- 0
+  paramS$PMChigh[paramS$Label=="f"] <- paramS$PMChigh[paramS$Label=="f1"] #RDT standard  
+  paramS$PMChigh[paramS$Label=="sens"] <- 0.96
+  paramS$PMChigh[paramS$Label=="spec"] <- 0.99
+  paramS$PMChigh[paramS$Label=="e"] <- 4.50
+  
+# High cost oral fluid HCVST: Double the cost of oral fluid-based HCVST to $11.25 compared to $5.63 in the base case;
+  paramS$OralHigh[paramS$Label=="v"] <- 0
+  paramS$OralHigh[paramS$Label=="f"] <- paramS$OralHigh[paramS$Label=="f1"] #RDT standard  
+  paramS$OralHigh[paramS$Label=="e"] <- 11.25
+  
+# Low HCVST performance: 
   paramS$LowAcc[paramS$Label=="v"] <- 0
-  paramS$LowAcc[paramS$Label=="sens"] <- 0.8
-  paramS$LowAcc[paramS$Label=="spec"] <- 0.8
-
-# *  Increase the uptake of self-testing to 50% compared to 10% in the baseline; (HighUptake)
-  paramS$HighUptake[paramS$Label=="v"] <- 0
-  paramS$HighUptake[paramS$Label=="n"] <- 0.5
-
-# *  Increase the proportion of self-test failures (invalid results) to 20% from 5% in the baseline; (LowSuccess)
-  paramS$LowSuccess[paramS$Label=="v"] <- 0
-  paramS$LowSuccess[paramS$Label=="w"] <- 0.8
+  paramS$LowAcc[paramS$Label=="f"] <- paramS$LowAcc[paramS$Label=="f1"] #RDT standard 
+  paramS$LowAcc[paramS$Label=="sens"] <- 0.9
+  paramS$LowAcc[paramS$Label=="spec"] <- 0.97
   
-# *  Increase the replacement of facility-based testing by self-testing to 20% compared to 5% in the baseline; (HighRepl)
-  paramS$HighRepl[paramS$Label=="v"] <- 0
-  paramS$HighRepl[paramS$Label=="o"] <- 0.2
+# High inter-reader agreement
+  paramS$HighIRA[paramS$Label=="v"] <- 0
+  paramS$HighIRA[paramS$Label=="f"] <- paramS$HighIRA[paramS$Label=="f1"] #RDT standard 
+  paramS$HighIRA[paramS$Label=="x"] <- 1
+  
+# High linkage: Assume 80% of positive self-tests link to facility-based testing compared to 65% in the base case.
+  paramS$HighLink[paramS$Label=="v"] <- 0
+  paramS$HighLink[paramS$Label=="f"] <- paramS$HighLink[paramS$Label=="f1"] #RDT standard 
+  paramS$HighLink[paramS$Label=="z1"] <- 0.80
+  paramS$HighLink[paramS$Label=="z3"] <- 0.80
+  
+# Low linkage: 50%
+  paramS$LowLink[paramS$Label=="v"] <- 0
+  paramS$LowLink[paramS$Label=="f"] <- paramS$LowLink[paramS$Label=="f1"] #RDT standard 
+  paramS$LowLink[paramS$Label=="z1"] <- 0.50
+  paramS$LowLink[paramS$Label=="z3"] <- 0.50
+  
+# High HCVST uptake
+  paramS$HighUp[paramS$Label=="v"] <- 0
+  paramS$HighUp[paramS$Label=="f"] <- paramS$HighUp[paramS$Label=="f1"] #RDT standard 
+  paramS$HighUp[paramS$Label=="n"] <-  paramS$HighUp[paramS$Label=="highup"]
+  
+  # Low HCVST uptake 
+  paramS$LowUp[paramS$Label=="v"] <- 0
+  paramS$LowUp[paramS$Label=="f"] <- paramS$LowUp[paramS$Label=="f1"] #RDT standard 
+  paramS$LowUp[paramS$Label=="n"] <-  paramS$LowUp[paramS$Label=="lowup"]
+  
+# High substitution: Vary the proportion of those using self-testing instead of facility-based testing to be 20% or 5% instead of 10% in the base case, while keeping the overall increase in overall testing at 62%.
+  paramS$HighSub[paramS$Label=="v"] <- 0
+  paramS$HighSub[paramS$Label=="f"] <- paramS$HighSub[paramS$Label=="f1"] #RDT standard 
+  paramS$HighSub[paramS$Label=="n"] <-  paramS$HighSub[paramS$Label=="highsub"]
+  paramS$HighSub[paramS$Label=="o"] <- 0.2
 
-# *  Assume that 65% (95% CI: 52%–78%) of reactive self-tests receive facility-based testing regardless of self-test distribution model (only affects Vietnam and Kenya). (Link65)
-  paramS$HighRepl[paramS$Label=="v"] <- 0
-  paramS$HighRepl[paramS$Label=="z1"] <- 0.65
-  paramS$HighRepl[paramS$Label=="z3"] <- 0.65
+    # Low substitution  
+  paramS$LowSub[paramS$Label=="v"] <- 0
+  paramS$LowSub[paramS$Label=="f"] <- paramS$LowSub[paramS$Label=="f1"] #RDT standard 
+  paramS$LowSub[paramS$Label=="n"] <-  paramS$LowSub[paramS$Label=="lowsub"]
+  paramS$LowSub[paramS$Label=="o"] <- 0.05
+    
+# High self-test failure: Vary the proportion of invalid self-test results to be 5% or 1% compared to 3% in the base case.
+  paramS$HighFail[paramS$Label=="v"] <- 0
+  paramS$HighFail[paramS$Label=="f"] <- paramS$HighFail[paramS$Label=="f1"] #RDT standard 
+  paramS$HighFail[paramS$Label=="w"] <- 0.95 
+  
+  # Low failure
+  paramS$LowFail[paramS$Label=="v"] <- 0
+  paramS$LowFail[paramS$Label=="f"] <- paramS$LowFail[paramS$Label=="f1"] #RDT standard 
+  paramS$LowFail[paramS$Label=="w"] <- 0.99
+
   
   param_list[[settings[i]]] <- paramS
   
@@ -212,4 +265,3 @@ dev.off()
 
 ### TO DO
 # assuming RDT as standard of care test needs a different base case
-# check results for Link65 as this should only affect Vietnam and Kenya
