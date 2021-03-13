@@ -205,6 +205,7 @@ results.CEd$diagnosed.d <- with(results.CE,diagnosed.x - diagnosed.y)
 results.CEd$cured.d <- with(results.CE,cured.x - cured.y)
 results.CEd$costperdiagnosis <- with(results.CEd,totalcost_xT.d/diagnosed.d)
 results.CEd$costpercure <- with(results.CEd,totalcost.d/cured.d)
+results.CEd$costpertest <- with(results.CEd,totalcost_xT.d/all.tested.d)
 
 # percent change from base case in numbers tested, diagnosed, and cured
 results.CEp <- results.CEd %>% select(setting,scenario.x)
@@ -227,6 +228,7 @@ results.CE.EIAd$diagnosed.d <- with(results.CE.EIA,diagnosed.x - diagnosed.y)
 results.CE.EIAd$cured.d <- with(results.CE.EIA,cured.x - cured.y)
 results.CE.EIAd$costperdiagnosis <- with(results.CE.EIAd,totalcost_xT.d/diagnosed.d)
 results.CE.EIAd$costpercure <- with(results.CE.EIAd,totalcost.d/cured.d)
+
 
 results.CEd %>% filter(scenario.x %in% c("NoST","BaseCase")) 
 results.CE %>% filter(scenario.x %in% c("NoST","BaseCase")) %>% select(setting,scenario.x,totalcost_xT.x,diagnosed.x)
@@ -273,8 +275,9 @@ f5a <- costs %>% filter(outcome %in% c("totalcost_xT")) %>% ggplot(aes(x=scenari
 # f5b <- costs %>% filter(outcome %in% c("totalcost")) %>% ggplot(aes(x=scenariof,y=cost/1000,fill=group)) + geom_bar(position="dodge",stat="identity") + facet_wrap(~setting,scales="free") + theme_classic() + theme(legend.title = element_blank(),legend.position="bottom") + xlab("Modelled Scenario") + ylab("Total cost (Thousands of dollars)") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
 
 # present cost per diagnosis (not incremental)
-costs2 <- results.CE %>% select(setting,scenario=scenario.x,totalcost_xT.x,diagnosed.x)
+costs2 <- results.CE %>% select(setting,scenario=scenario.x,totalcost_xT.x,diagnosed.x,all.tested.x)
 costs2$costperdiagnosis <- with(costs2,totalcost_xT.x/ diagnosed.x)
+costs2$costpertest <- with(costs2,totalcost_xT.x/ all.tested.x)
 costs2$group <- "Sensitivity analysis"
 costs2$group[costs2$scenario=="BaseCase"] <- "Base Case"
 costs2$group[costs2$scenario %in% c("NoST","NoST.EIA")] <- "No HCVST"
