@@ -184,7 +184,7 @@ for(i in 1:length(results))  {
   }
 }
 results.df <- bind_rows(results_sum)
-
+save(results.df,file="results.RData")
 ### 
 
 numbers <- results.df %>% select(setting,scenario,start_pop:cured) %>% pivot_longer(names_to="outcome",values_to="number",start_pop:cured)
@@ -247,6 +247,17 @@ pdf("fig3.pdf",width=7,height=7)
 f3
 dev.off()
 
+## China y axis?
+f3 + scale_y_log10() # misleading
+
+numbers2 <- numbers %>% filter(outcomef %in% c("all.tested","Ab.pos","diagnosed","treated","cured")) %>% group_by(setting,scenario) %>% mutate(p=lead(number)/number,percent=paste(format(round(lag(p)*100,1),nsmall=1),"%",sep=""))
+numbers2$percent[numbers2$percent=="  NA%"] <- NA
+f3b <- numbers2 %>% filter(scenariof %in% c("NoST","BaseCase")) %>% ggplot(aes(x=outcomef,y=number,fill=scenariof)) + geom_bar(position="dodge",stat="identity") + facet_wrap(~setting,scales="free") + theme_classic() + theme(legend.title = element_blank(),legend.position="bottom") + xlab("Cascade of care") + ylab("Number of people") + scale_x_discrete(labels=c("All tested","Antibody positive","Diagnosed","Treated","Cured")) + scale_fill_discrete(labels=c("No HCVST","Base Case HCVST")) + theme(axis.text.x=element_text(angle=30, vjust=.8, hjust=0.8)) + geom_text(aes(label=percent,group=scenariof),position=position_dodge(0.9),vjust=-0.5,angle=40,hjust=-0.1)
+pdf("fig3_new.pdf",width=10,height=10)
+f3b
+dev.off()
+
+
 #### sensitivity analysis on numbers diagnosed
 numbers$group <- "Sensitivity analysis"
 numbers$group[numbers$scenario=="BaseCase"] <- "Base Case"
@@ -301,19 +312,49 @@ bc <- icer %>% filter(scenario.x=="BaseCase")
 icer <- left_join(icer,bc,by="setting")
 icer$diffDiagnosis <- icer$costperdiagnosis.x - icer$costperdiagnosis.y
 icer$diffCure <- icer$costpercure.x - icer$costpercure.y
-icerD <- icer %>% arrange(scenario.x.x, desc(abs(diffDiagnosis)))
-icerC <- icer %>% arrange(setting, desc(abs(diffCure))) 
+
+
+# rearrange and label
+scen_names2 <- c(NoST="No ST",NoST.EIA="No ST EIA standard of care",BaseCase="Base Case ST",dNAT="Direct to NAT",EIA="EIA standard of care",PMC="Blood-based HCVST",PMChigh="High cost blood-based HCVST",OralHigh="High cost oral-fluid HCVST",EqualST="Equal cost HCVST",LowAcc="Low HCVST performance",HighIRA="High inter-reader agreement",Link="Linkage (base 65%)",Up="HCVST uptake (base 62%)",Sub="Substitution (base 10%)",Fail="Self-test success (base 97%)")
+
+icer$scen_group <- ifelse(icer$scenario.x.x %in% c("LowLink","LowUp","LowSub","LowFail"),"low","high")
+icer$labels <- icer$scenario.x.x
+icer$labels[icer$labels=="HighLink"] <- "Link"
+icer$labels[icer$labels=="LowLink"] <- "Link"
+icer$labels[icer$labels=="HighUp"] <- "Up"
+icer$labels[icer$labels=="LowUp"] <- "Up"
+icer$labels[icer$labels=="HighSub"] <- "Sub"
+icer$labels[icer$labels=="LowSub"] <- "Sub"
+icer$labels[icer$labels=="HighFail"] <- "Fail"
+icer$labels[icer$labels=="LowFail"] <- "Fail"
+
+icer$value_labels <- NA
+icer$value_labels[icer$scenario.x.x=="HighLink"] <- "80%        "
+icer$value_labels[icer$scenario.x.x=="LowLink"] <- "        50%"
+icer$value_labels[icer$scenario.x.x=="HighUp"] <- "80%        "
+icer$value_labels[icer$scenario.x.x=="LowUp"] <- "        30%"
+icer$value_labels[icer$scenario.x.x=="HighSub"] <- "        20%"
+icer$value_labels[icer$scenario.x.x=="LowSub"] <- "5%        "
+icer$value_labels[icer$scenario.x.x=="HighFail"] <- "        95%"
+icer$value_labels[icer$scenario.x.x=="LowFail"] <- "99%        "
+
+
+icerD <- icer %>% arrange(setting,abs(diffDiagnosis)) %>% mutate(labels = fct_inorder(labels)) %>% filter(!scenario.x.x %in% c("BaseCase","NoST"))
+# levels(icerD$labels)
+
+icerC <- icer %>% arrange(setting,abs(diffDiagnosis)) %>% mutate(labels = fct_inorder(labels)) %>% filter(!scenario.x.x %in% c("BaseCase","NoST"))
 
 # why can't I re-order them??
-f6a <- icerD %>% mutate(scenario.x.x = fct_inorder(scenario.x.x)) %>% filter(!scenario.x.x %in% c("BaseCase","NoST")) %>% ggplot() + geom_segment(aes(x=scenario.x.x,xend=scenario.x.x,yend=costperdiagnosis.y,y=costperdiagnosis.x,size=2))  + coord_flip() + facet_wrap(~setting,scales="free_x") + theme_classic()  + geom_hline(data=bc,aes(yintercept=costperdiagnosis)) + theme(legend.position="none")   + xlab("Scenario") +ylab("Incremental cost per diagnosis (USD)") + scale_x_discrete(labels=scen_names) # + geom_hline(yintercept=0,linetype="dotted")
+f6a <- icerD %>% ggplot() + geom_segment(aes(x=labels,xend=labels,yend=costperdiagnosis.y,y=costperdiagnosis.x,size=2,color=scen_group))  + coord_flip() + facet_wrap(~setting,scales="free_x") + theme_classic()  + geom_hline(data=bc,aes(yintercept=costperdiagnosis)) + theme(legend.position="none")   + xlab("Scenario") +ylab("Incremental cost per diagnosis (USD)") + scale_x_discrete(labels=scen_names2) + geom_text(aes(x=labels,y=costperdiagnosis.x,label=value_labels)) +scale_color_manual(values=c("grey","grey")) + scale_y_continuous(expand=c(0.1,0))
+# + geom_hline(yintercept=0,linetype="dotted") 
 
-f6b <- icerC %>% filter(!scenario.x.x %in% c("BaseCase","NoST")) %>% ggplot() + geom_segment(aes(x=scenario.x.x,xend=scenario.x.x,y=costpercure.y,yend=costpercure.x,size=2))  + coord_flip() + facet_wrap(~setting,scales="free_x") + theme_classic()  + geom_hline(data=bc,aes(yintercept=costpercure)) + theme(legend.position="none")   + xlab("Scenario") +ylab("Incremental cost per cure (USD)") + scale_x_discrete(labels=scen_names) # + geom_hline(yintercept=0,linetype="dotted")
+f6b <- icerC %>% ggplot() + geom_segment(aes(x=labels,xend=labels,y=costpercure.y,yend=costpercure.x,size=2,color=scen_group))  + coord_flip() + facet_wrap(~setting,scales="free_x") + theme_classic()  + geom_hline(data=bc,aes(yintercept=costpercure)) + theme(legend.position="none")   + xlab("Scenario") +ylab("Incremental cost per cure (USD)") + scale_x_discrete(labels=scen_names2) + geom_text(aes(x=labels,y=costpercure.x,label=value_labels)) +scale_color_manual(values=c("grey","grey")) + scale_y_continuous(expand=c(0.1,0)) # + geom_hline(yintercept=0,linetype="dotted")
 
-pdf("fig6.pdf",width=9,height=7)
+pdf("fig6_new.pdf",width=10,height=7)
 f6a
 dev.off()
 
-pdf("fig7.pdf",width=8,height=7)
+pdf("fig7_new.pdf",width=10,height=7)
 f6b
 dev.off()
 
