@@ -315,7 +315,7 @@ icer$diffCure <- icer$costpercure.x - icer$costpercure.y
 
 
 # rearrange and label
-scen_names2 <- c(NoST="No ST",NoST.EIA="No ST EIA standard of care",BaseCase="Base Case ST",dNAT="Direct to NAT",EIA="EIA standard of care",PMC="Blood-based HCVST",PMChigh="High cost blood-based HCVST",OralHigh="High cost oral-fluid HCVST",EqualST="Equal cost HCVST",LowAcc="Low HCVST performance",HighIRA="High inter-reader agreement",Link="Linkage (base 65%)",Up="HCVST uptake (base 62%)",Sub="Substitution (base 10%)",Fail="Self-test success (base 97%)")
+scen_names2 <- c(NoST="No ST",NoST.EIA="No ST EIA standard of care",BaseCase="Base Case ST",dNAT="Direct to NAT",EIA="EIA standard of care",PMC="Blood-based HCVST",PMChigh="High cost blood-based HCVST",OralHigh="High cost oral-fluid HCVST",EqualST="Equal cost oral-fluid HCVST",LowAcc="Low HCVST performance",HighIRA="High inter-reader agreement",Link="Linkage (base 65%)",Up="HCVST uptake (base 62%)",Sub="Substitution (base 10%)",Fail="Self-test success (base 97%)")
 
 icer$scen_group <- ifelse(icer$scenario.x.x %in% c("LowLink","LowUp","LowSub","LowFail"),"low","high")
 icer$labels <- icer$scenario.x.x
